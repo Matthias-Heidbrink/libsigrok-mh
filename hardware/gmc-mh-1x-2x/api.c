@@ -1,7 +1,7 @@
 /*
  * This file is part of the libsigrok project.
  *
- * Copyright (C) 2013 Matthias Heidbrink <m-sigrok@heidbrink.biz>
+ * Copyright (C) 2013, 2014 Matthias Heidbrink <m-sigrok@heidbrink.biz>
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -19,7 +19,7 @@
 
 /** @file
  *  Gossen Metrawatt Metrahit 1x/2x drivers
- *  @private
+ *  @internal
  */
 
 #include <string.h>
@@ -133,7 +133,7 @@ static enum model scan_model_sm(struct sr_serial_dev_inst *serial)
 			for (cnt = 0; cnt < 4; cnt++) {
 				byte = read_byte(serial, timeout_us);
 				if ((byte == -1) ||
-					((byte & MSGID_MASK) != MSGID_DATA))
+						((byte & MSGID_MASK) != MSGID_DATA))
 				{
 					model = METRAHIT_NONE;
 					bytecnt = 100;
@@ -309,66 +309,66 @@ static GSList *scan_2x_bd232(GSList *options)
 	sdi->priv = devc;
 
 	/* Send message 03 "Query multimeter version and status" */
-    sdi->conn = serial;
-    sdi->priv = devc;
-    if (req_stat14(sdi, TRUE) != SR_OK)
-        goto exit_err;
+	sdi->conn = serial;
+	sdi->priv = devc;
+	if (req_stat14(sdi, TRUE) != SR_OK)
+		goto exit_err;
 
-    /* Wait for reply from device(s) for up to 2s. */
-    timeout_us = g_get_monotonic_time() + 2*1000*1000;
+	/* Wait for reply from device(s) for up to 2s. */
+	timeout_us = g_get_monotonic_time() + 2*1000*1000;
 
-    while (timeout_us > g_get_monotonic_time()) {
-        /* Receive reply (14 bytes) */
-        devc->buflen = 0;
-        for (cnt = 0; cnt < 14; cnt++) {
-            byte = read_byte(serial, timeout_us);
-            if (byte != -1)
-                devc->buf[devc->buflen++] = (byte & MASK_6BITS);
-        }
+	while (timeout_us > g_get_monotonic_time()) {
+		/* Receive reply (14 bytes) */
+		devc->buflen = 0;
+		for (cnt = 0; cnt < 14; cnt++) {
+			byte = read_byte(serial, timeout_us);
+			if (byte != -1)
+				devc->buf[devc->buflen++] = (byte & MASK_6BITS);
+		}
 
-        if (devc->buflen != 14)
-            continue;
+		if (devc->buflen != 14)
+			continue;
 
-        devc->addr = devc->buf[0];
-        process_msg14(sdi);
-        devc->buflen = 0;
+		devc->addr = devc->buf[0];
+		process_msg14(sdi);
+		devc->buflen = 0;
 
-        if (devc->model != METRAHIT_NONE) {
-            sr_spew("%s %s detected!", VENDOR_GMC, gmc_model_str(devc->model));
+		if (devc->model != METRAHIT_NONE) {
+			sr_spew("%s %s detected!", VENDOR_GMC, gmc_model_str(devc->model));
 
-            devc->elapsed_msec = g_timer_new();
+			devc->elapsed_msec = g_timer_new();
 
-            sdi->model = g_strdup(gmc_model_str(devc->model));
-            sdi->version = g_strdup_printf("Firmware %d.%d", devc->fw_ver_maj, devc->fw_ver_min);
-            sdi->conn = serial;
-            sdi->priv = devc;
-            sdi->driver = &gmc_mh_2x_bd232_driver_info;
-            if (!(probe = sr_probe_new(0, SR_PROBE_ANALOG, TRUE, "P1")))
-                goto exit_err;
-            sdi->probes = g_slist_append(sdi->probes, probe);
-            drvc->instances = g_slist_append(drvc->instances, sdi);
-            devices = g_slist_append(devices, sdi);
+			sdi->model = g_strdup(gmc_model_str(devc->model));
+			sdi->version = g_strdup_printf("Firmware %d.%d", devc->fw_ver_maj, devc->fw_ver_min);
+			sdi->conn = serial;
+			sdi->priv = devc;
+			sdi->driver = &gmc_mh_2x_bd232_driver_info;
+			if (!(probe = sr_probe_new(0, SR_PROBE_ANALOG, TRUE, "P1")))
+				goto exit_err;
+			sdi->probes = g_slist_append(sdi->probes, probe);
+			drvc->instances = g_slist_append(drvc->instances, sdi);
+			devices = g_slist_append(devices, sdi);
 
-            if (!(devc = g_try_malloc0(sizeof(struct dev_context)))) {
-                sr_err("Device context malloc failed.");
-                goto exit_err;
-            }
+			if (!(devc = g_try_malloc0(sizeof(struct dev_context)))) {
+				sr_err("Device context malloc failed.");
+				goto exit_err;
+			}
 
-            if (!(sdi = sr_dev_inst_new(0, SR_ST_INACTIVE, VENDOR_GMC, NULL, NULL)))
-                goto exit_err;
-        }
-    };
+			if (!(sdi = sr_dev_inst_new(0, SR_ST_INACTIVE, VENDOR_GMC, NULL, NULL)))
+				goto exit_err;
+		}
+	};
 
-    /* Free last alloc if no device found */
-    if (devc->model == METRAHIT_NONE) {
-        g_free(devc);
-        sr_dev_inst_free(sdi);
-    }
+	/* Free last alloc if no device found */
+	if (devc->model == METRAHIT_NONE) {
+		g_free(devc);
+		sr_dev_inst_free(sdi);
+	}
 
 	return devices;
 
 exit_err:
-    sr_info("scan_2x_bd232(): Error!");
+	sr_info("scan_2x_bd232(): Error!");
 
 	if (serial)
 		sr_serial_dev_inst_free(serial);
@@ -470,7 +470,7 @@ static int config_get(int key, GVariant **data, const struct sr_dev_inst *sdi,
 
 /** Implementation of config_list, auxiliary function for common parts, */
 static int config_list_common(int key, GVariant **data, const struct sr_dev_inst *sdi,
-		       const struct sr_probe_group *probe_group)
+			      const struct sr_probe_group *probe_group)
 {
 	(void)sdi;
 	(void)probe_group;
@@ -489,7 +489,7 @@ static int config_list_common(int key, GVariant **data, const struct sr_dev_inst
 
 /** Implementation of config_list for Metrahit 1x/2x send mode */
 static int config_list_sm(int key, GVariant **data, const struct sr_dev_inst *sdi,
-		       const struct sr_probe_group *probe_group)
+			  const struct sr_probe_group *probe_group)
 {
 	(void)sdi;
 	(void)probe_group;
@@ -508,7 +508,7 @@ static int config_list_sm(int key, GVariant **data, const struct sr_dev_inst *sd
 
 /** Implementation of config_list for Metrahit 2x bidirectional mode */
 static int config_list_bd(int key, GVariant **data, const struct sr_dev_inst *sdi,
-		       const struct sr_probe_group *probe_group)
+			  const struct sr_probe_group *probe_group)
 {
 	(void)sdi;
 	(void)probe_group;
@@ -551,7 +551,7 @@ static int dev_acquisition_start_1x_2x_rs232(const struct sr_dev_inst *sdi,
 	/* Poll every 40ms, or whenever some data comes in. */
 	serial = sdi->conn;
 	serial_source_add(serial, G_IO_IN, 40, gmc_mh_1x_2x_receive_data,
-		(void *)sdi);
+			  (void *)sdi);
 
 	return SR_OK;
 }

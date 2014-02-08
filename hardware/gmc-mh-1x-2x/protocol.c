@@ -1,7 +1,7 @@
 /*
  * This file is part of the libsigrok project.
  *
- * Copyright (C) 2013 Matthias Heidbrink <m-sigrok@heidbrink.biz>
+ * Copyright (C) 2013, 2014 Matthias Heidbrink <m-sigrok@heidbrink.biz>
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -19,7 +19,7 @@
 
 /** @file
  *  Gossen Metrawatt Metrahit 1x/2x drivers
- *  @private
+ *  @internal
  */
 
 #include <math.h>
@@ -297,15 +297,15 @@ static void decode_rs_18(uint8_t rs, struct dev_context *devc)
 		devc->scale *= pow(10.0, range - 2);
 		break;
 	case SR_MQ_FREQUENCY:
-	devc->scale *= pow(10.0, range - 2);
+		devc->scale *= pow(10.0, range - 2);
 		break;
 	case SR_MQ_TEMPERATURE:
 		devc->scale *= pow(10.0, range - 2);
 		break;
 	case SR_MQ_CAPACITANCE:
-	devc->scale *= pow(10.0, range - 13);
+		devc->scale *= pow(10.0, range - 13);
 		break;
-	/* TODO: 29S Mains measurements. */
+		/* TODO: 29S Mains measurements. */
 	}
 }
 
@@ -508,13 +508,13 @@ static void decode_rs_2x(uint8_t rs, struct dev_context *devc)
 			devc->scale *= pow(10.0, -3);
 		else if (devc->vmains_29S)
 			devc->scale *= pow(10.0, range - 2);
-	else
+		else
 			devc->scale *= pow(10.0, range - 6);
 		break;
 	case SR_MQ_CURRENT:
-	if (devc->scale1000 != -1) /* uA, mA */
-	    range += 1;/* mA and A ranges differ by 10^4, not 10^3!*/
-	devc->scale *= pow(10.0, range - 6);
+		if (devc->scale1000 != -1) /* uA, mA */
+			range += 1;/* mA and A ranges differ by 10^4, not 10^3!*/
+		devc->scale *= pow(10.0, range - 6);
 		break;
 	case SR_MQ_RESISTANCE:
 		devc->scale *= pow(10.0, range - 3);
@@ -552,37 +552,37 @@ static void decode_rs_2x_TR2(uint8_t rs, struct dev_context *devc)
 		if (devc->scale1000 == -1) /* mA */
 			switch(range) {
 			case 0: case 1:	/* 100, 300 µA */
-		devc->scale *= pow(10.0, -6);
+				devc->scale *= pow(10.0, -6);
 				break;
 			case 2: case 3:	/* 1, 3 mA */
-		devc->scale *= pow(10.0, -5);
+				devc->scale *= pow(10.0, -5);
 				break;
 			case 4: case 5:	/* 10, 30 mA */
-		devc->scale *= pow(10.0, -4);
+				devc->scale *= pow(10.0, -4);
 				break;
-	    case 6: case 7:	/* 100, 300 mA */
+			case 6: case 7:	/* 100, 300 mA */
 				devc->scale *= pow(10.0, -3);
 				break;
 			}
 		else /* A */
 			switch(range) {
 			case 0: case 1:	/* 1, 3 A */
-		devc->scale *= pow(10.0, -5);
+				devc->scale *= pow(10.0, -5);
 				break;
 			case 2: /* 10 A */
-		devc->scale *= pow(10.0, -4);
+				devc->scale *= pow(10.0, -4);
 				break;
 			}
 		break;
 	default:
 		decode_rs_2x(rs, devc);
-	return;
+		return;
 	}
 
-    /* Sign */
-    if (((devc->scale > 0) && (rs & 0x08)) ||
-	    ((devc->scale < 0) && !(rs & 0x08)))
-	devc->scale *= -1.0;
+	/* Sign */
+	if (((devc->scale > 0) && (rs & 0x08)) ||
+			((devc->scale < 0) && !(rs & 0x08)))
+		devc->scale *= -1.0;
 }
 
 
@@ -667,10 +667,10 @@ static void process_msg_dta_6(struct sr_dev_inst *sdi)
 		decode_rs_16(bc(devc->buf[0]), devc);
 	else if (devc->model < METRAHIT_2X)
 		decode_rs_18(bc(devc->buf[0]), devc);
-    else {
+	else {
 		decode_rs_2x(bc(devc->buf[0]), devc);
-	devc->scale *= 10; /* Compensate for format having only 5 digits, decode_rs_2x() assumes 6. */
-    }
+		devc->scale *= 10; /* Compensate for format having only 5 digits, decode_rs_2x() assumes 6. */
+	}
 
 	/* Bytes 1-5, digits (ls first). */
 	for (cnt = 0; cnt < 5; cnt++) {
@@ -684,7 +684,7 @@ static void process_msg_dta_6(struct sr_dev_inst *sdi)
 		devc->value += pow(10.0, cnt) * dgt;
 	}
 
-    sr_spew("process_msg_dta_6() value=%f scale=%f scale1000=%d",
+	sr_spew("process_msg_dta_6() value=%f scale=%f scale1000=%d",
 		devc->value, devc->scale, devc->scale1000);
 	if (devc->value != NAN)
 		devc->value *= devc->scale * pow(1000.0, devc->scale1000);
@@ -740,10 +740,10 @@ static void process_msg_inf_10(struct sr_dev_inst *sdi)
 	/* Now decode numbers */
 	for (cnt = 0; cnt < 5; cnt++) {
 		dgt = bc(devc->buf[5 + cnt]);
-	if (dgt == 11) { /* Empty digit */
-	    dgt = 0;
-	}
-	else if (dgt >= 12) { /* Overload */
+		if (dgt == 11) { /* Empty digit */
+			dgt = 0;
+		}
+		else if (dgt >= 12) { /* Overload */
 			devc->value = NAN;
 			devc->scale = 1.0;
 			break;
@@ -751,7 +751,7 @@ static void process_msg_inf_10(struct sr_dev_inst *sdi)
 		devc->value += pow(10.0, cnt) * dgt;
 	}
 	sr_spew("process_msg_inf_10() value=%f scale=%f scalet=%d",
-			devc->value, devc->scale,  devc->scale1000);
+		devc->value, devc->scale,  devc->scale1000);
 
 	if (devc->value != NAN)
 		devc->value *= devc->scale * pow(1000.0, devc->scale1000);
@@ -969,9 +969,9 @@ SR_PRIV int process_msg14(struct sr_dev_inst *sdi)
 	devc = sdi->priv;
 
 	clean_ctmv_rs_v(devc);
-    addr = devc->buf[0] & MASK_6BITS;
-    if (addr != devc->addr)
-	sr_info("Device address mismatch %d/%d!", addr, devc->addr);
+	addr = devc->buf[0] & MASK_6BITS;
+	if (addr != devc->addr)
+		sr_info("Device address mismatch %d/%d!", addr, devc->addr);
 
 	switch (devc->buf[3]) { /* That's the command this reply is for */
 	/* 0 cannot occur, the respective message is not a 14-byte message */
@@ -987,14 +987,14 @@ SR_PRIV int process_msg14(struct sr_dev_inst *sdi)
 		case 0:
 			devc->fw_ver_maj = devc->buf[5];
 			devc->fw_ver_min = devc->buf[4];
-	    sr_spew("Firmware version %d.%d", (int)devc->fw_ver_maj, (int)devc->fw_ver_min);
-	    sr_spew("Rotary Switch Position (1..10): %d", (int)devc->buf[6]);
-	    /** Docs say values 0..9, but that's not true */
+			sr_spew("Firmware version %d.%d", (int)devc->fw_ver_maj, (int)devc->fw_ver_min);
+			sr_spew("Rotary Switch Position (1..10): %d", (int)devc->buf[6]);
+			/** Docs say values 0..9, but that's not true */
 			sr_spew("Measurement Function: %d ", (int)devc->buf[7]);
 			decode_ctmv_2x(devc->buf[7], devc);
 			sr_spew("Range: 0x%x", devc->buf[8]);
 			decode_rs_2x_TR2(devc->buf[8] & 0x0f, devc);  /* Docs wrong, uses conversion table TR_2! */
-	    devc->autorng = (devc->buf[8] & 0x20) == 0;
+			devc->autorng = (devc->buf[8] & 0x20) == 0;
 			// TODO 9, 10: 29S special functions
 			devc->ubatt = 0.1 * (float)devc->buf[11];
 			devc->model = gmc_decode_model_bd(devc->buf[12]);
@@ -1028,11 +1028,11 @@ SR_PRIV int process_msg14(struct sr_dev_inst *sdi)
 		sr_spew("Cmd 8, get one measurement value");
 		sr_spew("Measurement Function: %d ", (int)devc->buf[5]);
 		decode_ctmv_2x(devc->buf[5], devc);
-	if (!(devc->buf[6] & 0x10)) /* If bit4=0, old data. */
+		if (!(devc->buf[6] & 0x10)) /* If bit4=0, old data. */
 			return SR_OK;
 
-	decode_rs_2x_TR2(devc->buf[6] & 0x0f, devc); // The docs say conversion table TR_3, but that does not work
-	setmqf(devc, SR_MQFLAG_AUTORANGE, devc->autorng);
+		decode_rs_2x_TR2(devc->buf[6] & 0x0f, devc); // The docs say conversion table TR_3, but that does not work
+		setmqf(devc, SR_MQFLAG_AUTORANGE, devc->autorng);
 		/* 6 digits */
 		for (cnt = 0; cnt < 6; cnt++) {
 			dgt = bc(devc->buf[7 + cnt]);
@@ -1117,21 +1117,21 @@ SR_PRIV int gmc_mh_1x_2x_receive_data(int fd, int revents, void *cb_data)
 					devc->buflen = 0;
 					continue;
 				} else if ((devc->buflen == 10) &&
-					 (devc->model <= METRAHIT_18S)) {
+					   (devc->model <= METRAHIT_18S)) {
 					process_msg_inf_10(sdi);
 					devc->buflen = 0;
 					continue;
 				}
 				else if ((devc->buflen >= 5) &&
-					(devc->buf[devc->buflen - 1] &
-					MSGID_MASK) != MSGID_DATA) {
+					 (devc->buf[devc->buflen - 1] &
+					  MSGID_MASK) != MSGID_DATA) {
 					/*
 					 * Char just received is beginning
 					 * of next message.
 					 */
 					process_msg_inf_5(sdi);
 					devc->buf[0] =
-						devc->buf[devc->buflen - 1];
+							devc->buf[devc->buflen - 1];
 					devc->buflen = 1;
 					continue;
 				}
@@ -1219,15 +1219,15 @@ SR_PRIV int gmc_mh_2x_receive_data(int fd, int revents, void *cb_data)
 			if (elapsed_us > 1*1000*1000) /* Timeout! */
 				devc->response_pending = FALSE;
 		}
-	if (!devc->response_pending) {
-	    devc->cmd_seq++;
-	    if (devc->cmd_seq % 10 == 0) {
-		if (req_stat14(sdi, FALSE) != SR_OK)
-		    return FALSE;
-	    }
-	    else if (req_meas14(sdi) != SR_OK)
-		return FALSE;
-	}
+		if (!devc->response_pending) {
+			devc->cmd_seq++;
+			if (devc->cmd_seq % 10 == 0) {
+				if (req_stat14(sdi, FALSE) != SR_OK)
+					return FALSE;
+			}
+			else if (req_meas14(sdi) != SR_OK)
+				return FALSE;
+		}
 	}
 
 	return TRUE;
@@ -1305,38 +1305,38 @@ int req_meas14(const struct sr_dev_inst *sdi)
  */
 int req_stat14(const struct sr_dev_inst *sdi, gboolean power_on)
 {
-    struct dev_context *devc;
-    struct sr_serial_dev_inst *serial;
-    uint8_t params[9];
-    uint8_t msg[42];
+	struct dev_context *devc;
+	struct sr_serial_dev_inst *serial;
+	uint8_t params[9];
+	uint8_t msg[42];
 
-    if (!sdi || !(devc = sdi->priv) || !(serial = sdi->conn))
-	return SR_ERR;
+	if (!sdi || !(devc = sdi->priv) || !(serial = sdi->conn))
+		return SR_ERR;
 
-    memset(params, 0, sizeof(params));
-    params[0] = 0;
-    devc->cmd_idx = 0;
-    create_cmd_14(devc->addr, 3, params, msg);
+	memset(params, 0, sizeof(params));
+	params[0] = 0;
+	devc->cmd_idx = 0;
+	create_cmd_14(devc->addr, 3, params, msg);
 
-    if (power_on) {
-	sr_info("Write some data and wait 3s to turn on powered off device...");
-	if ((serial_write(serial, msg, sizeof(msg)) == -1) ||
-	    (serial_write(serial, msg, sizeof(msg)) == -1) ||
-	    (serial_write(serial, msg, sizeof(msg)) == -1))
-	    return SR_ERR;
-	g_usleep(3*1000*1000);
-	serial_flush(serial);
-    }
+	if (power_on) {
+		sr_info("Write some data and wait 3s to turn on powered off device...");
+		if ((serial_write(serial, msg, sizeof(msg)) == -1) ||
+				(serial_write(serial, msg, sizeof(msg)) == -1) ||
+				(serial_write(serial, msg, sizeof(msg)) == -1))
+			return SR_ERR;
+		g_usleep(3*1000*1000);
+		serial_flush(serial);
+	}
 
-    /* Write message and wait for reply */
-    devc->req_sent_at = g_get_monotonic_time();
-    if (serial_write(serial, msg, sizeof(msg)) == -1) {
-	return SR_ERR;
-    }
+	/* Write message and wait for reply */
+	devc->req_sent_at = g_get_monotonic_time();
+	if (serial_write(serial, msg, sizeof(msg)) == -1) {
+		return SR_ERR;
+	}
 
-    devc->response_pending = TRUE;
+	devc->response_pending = TRUE;
 
-    return SR_OK;
+	return SR_OK;
 }
 
 /** Decode model in "send mode".
@@ -1373,9 +1373,9 @@ SR_PRIV int gmc_decode_model_sm(uint8_t mcode)
 	case 0x0f: /* 1111b */
 		return METRAHIT_24S;
 	case 0x05: /* 0101b */
-	return METRAHIT_25S;
+		return METRAHIT_25S;
 	case 0x01: /* 0001b */
-	return METRAHIT_26SM;
+		return METRAHIT_26SM;
 	case 0x0c: /* 1100b */
 		return METRAHIT_28S;
 	case 0x0e: /* 1110b */
@@ -1394,26 +1394,26 @@ SR_PRIV int gmc_decode_model_sm(uint8_t mcode)
  */
 SR_PRIV int gmc_decode_model_bd(uint8_t mcode)
 {
-    switch (mcode & 0x1f) {
-    case 2:
-	if (mcode & 0x20)
-	    return METRAHIT_22M;
-	else
-	    return METRAHIT_22S;
-    case 3:
-	return METRAHIT_23S;
-    case 4:
+	switch (mcode & 0x1f) {
+	case 2:
+		if (mcode & 0x20)
+			return METRAHIT_22M;
+		else
+			return METRAHIT_22S;
+	case 3:
+		return METRAHIT_23S;
+	case 4:
 		return METRAHIT_24S;
-    case 5:
-	return METRAHIT_25S;
-    case 1:
-	if (mcode & 0x20)
-	    return METRAHIT_26M;
-	else
-	    return METRAHIT_26S;
-    case 12:
+	case 5:
+		return METRAHIT_25S;
+	case 1:
+		if (mcode & 0x20)
+			return METRAHIT_26M;
+		else
+			return METRAHIT_26S;
+	case 12:
 		return METRAHIT_28S;
-    case 14:
+	case 14:
 		return METRAHIT_29S;
 	default:
 		sr_err("Unknown model code %d!", mcode);
@@ -1448,23 +1448,23 @@ SR_PRIV const char *gmc_model_str(enum model mcode)
 		return "METRAHit 18S";
 	case METRAHIT_22SM:
 		return "METRAHit 22S/M";
-    case METRAHIT_22S:
-	return "METRAHit 22S";
-    case METRAHIT_22M:
-	return "METRAHit 22M";
-    case METRAHIT_23S:
+	case METRAHIT_22S:
+		return "METRAHit 22S";
+	case METRAHIT_22M:
+		return "METRAHit 22M";
+	case METRAHIT_23S:
 		return "METRAHit 23S";
 	case METRAHIT_24S:
 		return "METRAHit 24S";
-    case METRAHIT_25S:
-	return "METRAHit 25S";
-    case METRAHIT_26SM:
-	return "METRAHit 26S/M";
-    case METRAHIT_26S:
-	return "METRAHit 26S";
-    case METRAHIT_26M:
-	return "METRAHit 26M";
-    case METRAHIT_28S:
+	case METRAHIT_25S:
+		return "METRAHit 25S";
+	case METRAHIT_26SM:
+		return "METRAHit 26S/M";
+	case METRAHIT_26S:
+		return "METRAHit 26S";
+	case METRAHIT_26M:
+		return "METRAHit 26M";
+	case METRAHIT_28S:
 		return "METRAHit 28S";
 	case METRAHIT_29S:
 		return "METRAHit 29S";

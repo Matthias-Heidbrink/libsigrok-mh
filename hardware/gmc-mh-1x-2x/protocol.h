@@ -1,7 +1,7 @@
 /*
  * This file is part of the libsigrok project.
  *
- * Copyright (C) 2013 Matthias Heidbrink <m-sigrok@heidbrink.biz>
+ * Copyright (C) 2013, 2014 Matthias Heidbrink <m-sigrok@heidbrink.biz>
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -15,6 +15,11 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
+
+/** @file
+ *  Gossen Metrawatt Metrahit 1x/2x drivers
+ *  @internal
  */
 
 #ifndef LIBSIGROK_HARDWARE_GMC_MH_1X_2X_PROTOCOL_H
@@ -36,7 +41,7 @@
 #define MSGID_DTA   0x20 /**< Start of data message, displayed, averaged */
 #define MSGID_DATA  0x30 /**< Data byte in message */
 
-#define MSGC_MASK   0x0f  /**< Mask to get message byte contents */
+#define MSGC_MASK   0x0f  /**< Mask to get message byte contents in send mode */
 
 #define MSGSRC_MASK 0xc0 /**< Mask to get bits related to message source */
 
@@ -60,29 +65,18 @@ enum model {
 	/* A Metrahit 17 exists, but seems not to have an IR interface. */
 	METRAHIT_18S		= 18,
 	METRAHIT_2X		= 20, /**< For model type comparisons */
-	METRAHIT_22SM		= 22,
-	METRAHIT_23S		= 23,
-	METRAHIT_24S		= 24,
-	METRAHIT_25SM		= 25,
-	METRAHIT_26S		= 26,
-	METRAHIT_28S		= 28,
-	METRAHIT_29S		= 29,
+	METRAHIT_22SM		= METRAHIT_2X + 1,	/**< Send mode */
+	METRAHIT_22S		= METRAHIT_22SM + 1,	/**< Bidi mode */
+	METRAHIT_22M		= METRAHIT_22S + 1,	/**< Bidi mode */
+	METRAHIT_23S		= METRAHIT_22M + 1,
+	METRAHIT_24S		= METRAHIT_23S + 1,
+	METRAHIT_25S		= METRAHIT_24S + 1,
+	METRAHIT_26SM		= METRAHIT_25S + 1,	/**< Send mode */
+	METRAHIT_26S		= METRAHIT_26SM + 1,	/**< Bidi mode */
+	METRAHIT_26M		= METRAHIT_26S + 1,	/**< Bidi mode */
+	METRAHIT_28S		= METRAHIT_26M + 1,
+	METRAHIT_29S		= METRAHIT_28S + 1,
 };
-
-/** Convert GMC model code in send mode to sigrok-internal one. */
-SR_PRIV int gmc_decode_model_sm(uint8_t mcode);
-
-/**
- * Convert GMC model code in bidirectional mode to sigrok-internal one.
- *
- * @param[in] mcode Model code.
- *
- * @return Model code.
- */
-SR_PRIV int gmc_decode_model_bidi(uint8_t mcode);
-
-/** Get model string from sigrok-internal model code. */
-SR_PRIV const char *gmc_model_str(enum model mcode);
 
 /** Private, per-device-instance driver context. */
 struct dev_context {
@@ -98,15 +92,24 @@ struct dev_context {
 
 	/* Operational state */
 	gboolean settings_ok;	/**< Settings msg received yet. */
-	int msg_type;	/**< Message type (MSGID_INF, ...). */
-	int msg_len;	/**< Message lengh (valid when msg, curr. type known).*/
-	int mq;		/**< Measured quantity */
-	int unit;		/**< Measured unit */
+	int msg_type;       /**< Message type (MSGID_INF, ...). */
+	int msg_len;        /**< Message lengh (valid when msg, curr. type known).*/
+	int mq;             /**< Measured quantity */
+	int unit;           /**< Measured unit */
 	uint64_t mqflags;	/**< Measured quantity flags */
 	float value;		/**< Measured value */
 	float scale;		/**< Scale for value. */
-	int8_t scale1000;   /**< Additional scale factor 1000^x. */
+	int8_t scale1000;   /**< Additional scale factor 1000x. */
 	gboolean vmains_29S;	/**< Measured ctmv is V mains (29S only). */
+	int addr;           /**< Device address (1..15). */
+	int cmd_idx;        /**< Parameter "Idx" (Index) of current command, if required. */
+	int cmd_seq;        /**< Command sequence. Used to query status every n messages. */
+	gboolean autorng;   /**< Auto range enabled. */
+	float ubatt;        /**< Battery voltage. */
+	uint8_t fw_ver_maj; /**< Firmware version major. */
+	uint8_t fw_ver_min; /**< Firmware version minor. */
+	int64_t req_sent_at;    /**< Request sent. */
+	gboolean response_pending; /**< Request sent, response is pending. */
 
 	/* Temporary state across callbacks */
 	uint64_t num_samples;	/**< Current #samples for limit_samples */
@@ -115,6 +118,18 @@ struct dev_context {
 	int buflen;			/**< Data len in buf */
 };
 
+/* Forward declarations */
+SR_PRIV int config_set(int key, GVariant *data, const struct sr_dev_inst *sdi,
+		const struct sr_probe_group *probe_group);
+SR_PRIV void create_cmd_14(guchar addr, guchar func, guchar* params, guchar* buf);
+SR_PRIV void dump_msg14(guchar* buf, gboolean raw);
+SR_PRIV int gmc_decode_model_bd(uint8_t mcode);
+SR_PRIV int gmc_decode_model_sm(uint8_t mcode);
 SR_PRIV int gmc_mh_1x_2x_receive_data(int fd, int revents, void *cb_data);
+SR_PRIV int gmc_mh_2x_receive_data(int fd, int revents, void *cb_data);
+SR_PRIV const char *gmc_model_str(enum model mcode);
+SR_PRIV int process_msg14(struct sr_dev_inst *sdi);
+SR_PRIV int req_meas14(const struct sr_dev_inst *sdi);
+SR_PRIV int req_stat14(const struct sr_dev_inst *sdi, gboolean power_on);
 
 #endif

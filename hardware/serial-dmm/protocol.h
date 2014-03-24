@@ -39,8 +39,10 @@ enum {
 	RADIOSHACK_22_805,
 	RADIOSHACK_22_812,
 	TECPEL_DMM_8061_SER,
+	VOLTCRAFT_M3650CR,
 	VOLTCRAFT_M3650D,
 	VOLTCRAFT_M4650CR,
+	VOLTCRAFT_ME42,
 	VOLTCRAFT_VC820_SER,
 	VOLTCRAFT_VC830_SER,
 	VOLTCRAFT_VC840_SER,
@@ -123,8 +125,10 @@ SR_PRIV int receive_data_RADIOSHACK_22_168(int fd, int revents, void *cb_data);
 SR_PRIV int receive_data_RADIOSHACK_22_805(int fd, int revents, void *cb_data);
 SR_PRIV int receive_data_RADIOSHACK_22_812(int fd, int revents, void *cb_data);
 SR_PRIV int receive_data_TECPEL_DMM_8061_SER(int fd, int revents, void *cb_data);
+SR_PRIV int receive_data_VOLTCRAFT_M3650CR(int fd, int revents, void *cb_data);
 SR_PRIV int receive_data_VOLTCRAFT_M3650D(int fd, int revents, void *cb_data);
 SR_PRIV int receive_data_VOLTCRAFT_M4650CR(int fd, int revents, void *cb_data);
+SR_PRIV int receive_data_VOLTCRAFT_ME42(int fd, int revents, void *cb_data);
 SR_PRIV int receive_data_VOLTCRAFT_VC820_SER(int fd, int revents, void *cb_data);
 SR_PRIV int receive_data_VOLTCRAFT_VC830_SER(int fd, int revents, void *cb_data);
 SR_PRIV int receive_data_VOLTCRAFT_VC840_SER(int fd, int revents, void *cb_data);

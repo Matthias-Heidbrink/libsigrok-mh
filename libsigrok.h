@@ -101,6 +101,16 @@ enum sr_loglevel {
 	SR_LOG_SPEW = 5, /**< Output very noisy debug messages. */
 };
 
+/** libsigrok log options. Values except SR_LOG_NOOPTS can be combined. */
+enum  sr_logopts {
+	SR_LOG_NOOPTS   =  0, /**< Disable logging options */
+	SR_LOG_DATE     =  1, /**< Log date yyyymmdd before msg. */
+	SR_LOG_TIME     =  2, /**< Log time hhmmss before msg. */
+	SR_LOG_TIME_MS  =  4, /**< Log time + ms .nnn before msg. */
+	SR_LOG_TIME_US  =  8, /**< Log time + µs .nnnnnn before msg. */
+	SR_LOG_UTC      = 16, /**< Use UTC (GMT) for date and time, avoiding TZ and DST issues. */
+};
+
 /*
  * Use SR_API to mark public API symbols, and SR_PRIV for private symbols.
  *
@@ -236,7 +246,7 @@ enum sr_unit {
 	 * a unitless quantity, for example.
 	 */
 	SR_UNIT_UNITLESS,
-	/** Sound pressure level relative so 20 micropascals. */
+	/** Sound pressure level, in decibels, relative to 20 micropascals. */
 	SR_UNIT_DECIBEL_SPL,
 	/**
 	 * Normalized (0 to 1) concentration of a substance or compound with 0

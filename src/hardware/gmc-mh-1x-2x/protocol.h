@@ -101,7 +101,6 @@ struct dev_context {
 	float value;		/**< Measured value */
 	float scale;		/**< Scale for value. */
 	int8_t scale1000;   /**< Additional scale factor 1000x. */
-	gboolean vmains_29S;	/**< Measured ctmv is V mains (29S only). */
 	int addr;           /**< Device address (1..15). */
 	int cmd_idx;        /**< Parameter "Idx" (Index) of current command, if required. */
 	int cmd_seq;        /**< Command sequence. Used to query status every n messages. */
